@@ -3,18 +3,37 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hệ thống Giám sát Vệ sinh Tay</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>VST SYSTEM - BVĐK Tân Phú</title>
+    
+    <!-- Mobile Web App Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VST SYSTEM">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- App Icons (Placeholder - bạn có thể thay thế bằng link ảnh thật sau) -->
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063204.png">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/3063/3063204.png">
+    
+    <link rel="manifest" href="/manifest.json" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
       body { 
         font-family: 'Inter', sans-serif; 
-        font-size: 16px; /* Đã đổi từ 18px sang 16px */
+        font-size: 16px; 
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
       }
       input, select, button {
-        font-size: 16px !important; /* Đã đổi từ 18px sang 16px */
+        font-size: 16px !important; 
       }
+      /* Tối ưu cho màn hình tai thỏ/nốt ruồi */
+      .safe-top { padding-top: env(safe-area-inset-top); }
+      .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 12px); }
     </style>
   <script type="importmap">
 {
@@ -23,14 +42,14 @@
     "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
     "recharts": "https://esm.sh/recharts@^3.7.0",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4"
+    "react": "https://esm.sh/react@^19.2.4",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.3"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>

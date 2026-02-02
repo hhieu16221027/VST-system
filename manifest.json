@@ -1,0 +1,18 @@
+
+{
+  "short_name": "VST SYSTEM",
+  "name": "Hệ thống Giám sát Vệ sinh Tay",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063204.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F0F9FF",
+  "theme_color": "#2563eb",
+  "display": "standalone",
+  "orientation": "portrait"
+}

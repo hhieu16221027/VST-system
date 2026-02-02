@@ -4,41 +4,24 @@
 
 ---
 
-## 📱 Cách lấy Link truy cập trên điện thoại (Dùng Vercel)
+## 📲 Cách cài đặt vào màn hình chính (Home Screen)
 
-Đây là cách dễ nhất để có link chạy thật trên điện thoại:
+Sau khi truy cập vào đường link ứng dụng trên điện thoại, hãy làm theo các bước sau để dùng như một App thật:
 
-1. Truy cập [Vercel.com](https://vercel.com/) và chọn **Continue with GitHub**.
-2. Nhấn **Add New** -> **Project**.
-3. Tìm repository `vst-system` của bạn và nhấn **Import**.
-4. Nhấn **Deploy**.
-5. Sau khi xong, Vercel sẽ cho bạn một đường link (ví dụ: `https://vst-system.vercel.app`).
-6. **Mẹo:** Vercel sẽ hiện một hình ảnh xem trước trang web, bạn có thể nhấn vào đó để lấy **Mã QR**. Dùng điện thoại quét mã này để mở ứng dụng ngay lập tức.
+### 1. Trên iPhone (Dùng trình duyệt Safari):
+1. Nhấn vào biểu tượng **Chia sẻ** (hình ô vuông có mũi tên lên) ở thanh dưới cùng.
+2. Kéo xuống dưới và chọn **Thêm vào MH chính** (Add to Home Screen).
+3. Nhấn **Thêm** (Add) ở góc trên bên phải.
+4. Biểu tượng **VST SYSTEM** sẽ xuất hiện trên màn hình chính của bạn.
 
----
-
-## 🚀 Hướng dẫn đồng bộ lên GitHub (Nếu chưa làm)
-
-### Cách 1: Sử dụng giao diện Web
-1. Tạo Repo mới trên GitHub.
-2. Chọn **uploading an existing file**.
-3. Kéo toàn bộ file dự án vào và nhấn **Commit changes**.
-
-### Cách 2: Sử dụng Git Command Line
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <URL_REPO_CỦA_BẠN>
-git push -u origin main
-```
+### 2. Trên Android (Dùng trình duyệt Chrome):
+1. Nhấn vào biểu tượng **3 dấu chấm** ở góc trên bên phải.
+2. Chọn **Cài đặt ứng dụng** (Install App) hoặc **Thêm vào màn hình chính**.
+3. Nhấn **Cài đặt** để xác nhận.
 
 ---
 
 ## 🛠 Cấu hình Google Sheets để nhận dữ liệu
-
-Để dữ liệu tự động đổ về Google Sheets:
 
 1. Mở một file Google Sheets mới.
 2. Vào menu **Extensions** -> **Apps Script**.
