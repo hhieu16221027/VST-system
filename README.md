@@ -4,27 +4,35 @@
 
 ---
 
-## 🚀 Hướng dẫn đồng bộ lên GitHub
+## 📱 Cách lấy Link truy cập trên điện thoại (Dùng Vercel)
 
-Bạn có thể chọn một trong hai cách sau để đưa code lên GitHub:
+Đây là cách dễ nhất để có link chạy thật trên điện thoại:
 
-### Cách 1: Sử dụng giao diện Web (Đơn giản nhất, không cần cài đặt)
-1. Truy cập [github.com](https://github.com) và đăng nhập.
-2. Nhấn nút **New** (màu xanh) để tạo kho lưu trữ mới. Đặt tên (ví dụ: `vst-system`) và nhấn **Create repository**.
-3. Tại trang hướng dẫn hiện ra, tìm dòng: *"...or upload an existing file"*. Nhấp vào chữ **uploading an existing file**.
-4. Kéo toàn bộ các file từ máy tính của bạn và thả vào vùng tải lên của trình duyệt.
-5. Cuộn xuống dưới, nhập nội dung mô tả (ví dụ: "Initial upload") và nhấn **Commit changes**.
+1. Truy cập [Vercel.com](https://vercel.com/) và chọn **Continue with GitHub**.
+2. Nhấn **Add New** -> **Project**.
+3. Tìm repository `vst-system` của bạn và nhấn **Import**.
+4. Nhấn **Deploy**.
+5. Sau khi xong, Vercel sẽ cho bạn một đường link (ví dụ: `https://vst-system.vercel.app`).
+6. **Mẹo:** Vercel sẽ hiện một hình ảnh xem trước trang web, bạn có thể nhấn vào đó để lấy **Mã QR**. Dùng điện thoại quét mã này để mở ứng dụng ngay lập tức.
 
-### Cách 2: Sử dụng Git Command Line (Dành cho lập trình viên)
-1. **Khởi tạo:** `git init`
-2. **Thêm file:** `git add .`
-3. **Lưu:** `git commit -m "Initial commit"`
-4. **Kết nối & Đẩy code:**
-   ```bash
-   git branch -M main
-   git remote add origin <URL_REPO_CỦA_BẠN>
-   git push -u origin main
-   ```
+---
+
+## 🚀 Hướng dẫn đồng bộ lên GitHub (Nếu chưa làm)
+
+### Cách 1: Sử dụng giao diện Web
+1. Tạo Repo mới trên GitHub.
+2. Chọn **uploading an existing file**.
+3. Kéo toàn bộ file dự án vào và nhấn **Commit changes**.
+
+### Cách 2: Sử dụng Git Command Line
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin <URL_REPO_CỦA_BẠN>
+git push -u origin main
+```
 
 ---
 
