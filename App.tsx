@@ -402,27 +402,18 @@ const App: React.FC = () => {
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 pb-32">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                  <UserCircle className="text-blue-500" size={20} />
+              <div className="grid grid-cols-1">
+                <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
+                  <UserCircle className="text-blue-500" size={24} />
                   <div>
-                    <p className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Giám sát bởi</p>
-                    <p className="font-black text-slate-700 text-[14px] truncate">{selectedSession.observer}</p>
-                  </div>
-                </div>
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                  <Info className="text-blue-500" size={20} />
-                  <div>
-                    <p className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Kết quả đạt</p>
-                    <p className="font-black text-slate-700 text-[14px]">
-                      {selectedSession.observations.filter(o => o.procedure === "Đúng").length}/{selectedSession.observations.length} Lượt
-                    </p>
+                    <p className="text-[11px] font-black text-slate-300 uppercase leading-none mb-1.5 tracking-wider">Người giám sát thực hiện</p>
+                    <p className="font-black text-slate-800 text-[16px] truncate">{selectedSession.observer}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Dánh sách lượt quan sát</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Dánh sách lượt quan sát ({selectedSession.observations.length})</label>
                 {selectedSession.observations.map((obs, idx) => (
                   <div key={obs.id} className="bg-white rounded-[28px] p-5 border border-slate-100 shadow-sm space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-50 pb-3">
