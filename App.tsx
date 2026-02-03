@@ -1,16 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { MonitoringSession, Observation, Department } from './types';
-import { DEPARTMENTS } from './constants';
+import { DEPARTMENTS, NON_HYGIENE_ACTIONS } from './constants';
 import ObservationRow from './components/ObservationRow';
-import { Plus, History, LayoutDashboard, FileText, CheckCheck, Loader2, Activity, Settings, CloudUpload, Check, Users, AlertCircle } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { 
+  Plus, History, LayoutDashboard, FileText, CheckCheck, Loader2, 
+  Activity, Settings, CloudUpload, Check, Users, AlertCircle,
+  ChevronRight, X, UserCircle, Briefcase, Zap, Info, Calendar
+} from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 const STORAGE_KEY = 'hand_hygiene_data_v2';
 const SCRIPT_URL_KEY = 'hand_hygiene_script_url_v2';
 const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXmB7F2gHRlTMDJThk2THi5Sd7qvstN_eIqncvrPZqL97ZG_8vmdYx7rJggA4yTmeP/exec";
 
-// Hàm tạo ID an toàn không phụ thuộc crypto.randomUUID
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 const formatToVN = (dateStr: string) => {
@@ -27,6 +30,7 @@ const App: React.FC = () => {
   const [scriptUrl, setScriptUrl] = useState('');
   const [isUrlSaved, setIsUrlSaved] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<MonitoringSession | null>(null);
 
   // Form State
   const [observer, setObserver] = useState('');
@@ -36,7 +40,7 @@ const App: React.FC = () => {
     {
       id: generateId(),
       profession: "DD/HS/KTV",
-      indications: [], // Bỏ chọn mặc định
+      indications: [],
       action: "VST với cồn",
       procedure: "Đúng",
       staffName: ""
@@ -46,7 +50,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      try { setHistory(JSON.parse(stored)); } catch (e) { console.error("Lỗi đọc dữ liệu cũ:", e); }
+      try { setHistory(JSON.parse(stored)); } catch (e) { console.error("Lỗi đọc dữ liệu:", e); }
     }
     
     const storedUrl = localStorage.getItem(SCRIPT_URL_KEY);
@@ -69,7 +73,7 @@ const App: React.FC = () => {
     setObservations([...observations, {
       id: generateId(),
       profession: "DD/HS/KTV",
-      indications: [], // Bỏ chọn mặc định cho lượt mới
+      indications: [],
       action: "VST với cồn",
       procedure: "Đúng",
       staffName: ""
@@ -89,21 +93,17 @@ const App: React.FC = () => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
 
-    // Validation NV giám sát
     if (!observer.trim()) { 
       alert("Vui lòng nhập tên NHÂN VIÊN GIÁM SÁT!"); 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return; 
     }
 
-    // Validation NV được giám sát
     const incompleteName = observations.some(obs => !obs.staffName || !obs.staffName.trim());
     if (incompleteName) {
-      alert("Vui lòng nhập đầy đủ tên nhân viên được giám sát ở tất cả các lượt.");
+      alert("Vui lòng nhập đầy đủ tên nhân viên được giám sát.");
       return;
     }
 
-    // Validation Chỉ định (Bắt buộc chọn ít nhất 1)
     const incompleteIndications = observations.some(obs => !obs.indications || obs.indications.length === 0);
     if (incompleteIndications) {
       alert("Mỗi lượt quan sát cần chọn ít nhất một CHỈ ĐỊNH.");
@@ -154,7 +154,7 @@ const App: React.FC = () => {
       setObservations([{
         id: generateId(),
         profession: "DD/HS/KTV",
-        indications: [], // Reset về rỗng
+        indications: [],
         action: "VST với cồn",
         procedure: "Đúng",
         staffName: ""
@@ -163,12 +163,10 @@ const App: React.FC = () => {
       setTimeout(() => {
         setShowSuccess(false);
         setActiveTab('history');
-        window.scrollTo(0, 0);
       }, 1500);
 
     } catch (error) {
-      console.error("Lỗi khi lưu dữ liệu:", error);
-      alert("Có lỗi xảy ra khi gửi dữ liệu. Tuy nhiên, dữ liệu của bạn đã được lưu tạm vào máy.");
+      saveScriptUrl(scriptUrl); // Trigger re-save to local storage if fail
     } finally {
       setIsSubmitting(false);
     }
@@ -191,11 +189,7 @@ const App: React.FC = () => {
       };
     });
 
-    return { 
-      total, 
-      compliance: (compliant.length / total * 100).toFixed(1), 
-      profStats
-    };
+    return { total, compliance: (compliant.length / total * 100).toFixed(1), profStats };
   };
 
   const stats = getStats();
@@ -250,22 +244,14 @@ const App: React.FC = () => {
                       onChange={(e) => setObserver(e.target.value)} 
                     />
                   </div>
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[16px] font-black text-slate-400 uppercase ml-2">KHOA ĐƯỢC GIÁM SÁT</label>
-                      <select className="w-full px-5 py-4 bg-sky-50/50 border-none rounded-[18px] text-[16px] font-bold outline-none appearance-none shadow-inner" value={department} onChange={(e) => setDepartment(e.target.value as Department)}>
-                        {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-                      </select>
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-[16px] font-black text-slate-400 uppercase ml-2">KHOA ĐƯỢC GIÁM SÁT</label>
+                    <select className="w-full px-5 py-4 bg-sky-50/50 border-none rounded-[18px] text-[16px] font-bold outline-none appearance-none shadow-inner" value={department} onChange={(e) => setDepartment(e.target.value as Department)}>
+                      {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                    </select>
                   </div>
                 </div>
               </section>
-
-              <div className="px-2">
-                 <h2 className="text-[18px] font-black uppercase text-blue-800/60 tracking-wider flex items-center gap-3">
-                   <Activity size={20} className="text-teal-500" /> Tổng số: {observations.length} lượt quan sát
-                 </h2>
-              </div>
 
               <div className="space-y-4">
                 {observations.map((obs, idx) => (
@@ -299,15 +285,20 @@ const App: React.FC = () => {
                  <p className="text-[16px] font-bold text-sky-400">Chưa có dữ liệu giám sát</p>
                </div>
              ) : (
-               <div className="space-y-5">
+               <div className="space-y-4">
                  {history.map(session => (
-                   <div key={session.id} className="bg-white rounded-[24px] p-6 shadow-sm border border-sky-100 space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <div className="text-[16px] font-black text-blue-600 uppercase tracking-tight">{session.department}</div>
-                          <div className="text-[14px] text-slate-400 font-bold">{formatToVN(session.date)} • {session.observer}</div>
-                        </div>
-                        <div className="bg-sky-50 px-3 py-1 rounded-xl text-[14px] font-black text-blue-500 uppercase">{session.observations.length} Lượt</div>
+                   <div 
+                    key={session.id} 
+                    onClick={() => setSelectedSession(session)}
+                    className="bg-white rounded-[24px] p-6 shadow-sm border border-sky-100 flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:border-blue-200"
+                   >
+                      <div className="space-y-1 pr-4">
+                        <div className="text-[16px] font-black text-blue-900 uppercase tracking-tight truncate max-w-[200px]">{session.department}</div>
+                        <div className="text-[13px] text-slate-400 font-bold">{formatToVN(session.date)} • {session.observer}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-blue-50 px-3 py-1.5 rounded-xl text-[14px] font-black text-blue-600 uppercase whitespace-nowrap">{session.observations.length} Lượt</div>
+                        <ChevronRight size={20} className="text-slate-300" />
                       </div>
                    </div>
                  ))}
@@ -335,7 +326,11 @@ const App: React.FC = () => {
                             <XAxis type="number" hide />
                             <YAxis dataKey="name" type="category" width={90} fontSize={14} fontWeight="black" />
                             <Tooltip contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 12px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="totalObs" name="Tổng cơ hội" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={20} />
+                            <Bar dataKey="totalObs" name="Tổng cơ hội" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={20}>
+                               {stats.profStats.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#60a5fa'} />
+                               ))}
+                            </Bar>
                          </BarChart>
                        </ResponsiveContainer>
                     </div>
@@ -376,6 +371,7 @@ const App: React.FC = () => {
                   <label className="text-[16px] font-black text-slate-400 uppercase">Google Script URL</label>
                   <input 
                     type="url" 
+                    placeholder="Dán link Apps Script vào đây"
                     className="w-full px-5 py-4 bg-sky-50 rounded-xl text-[14px] font-mono border-2 border-transparent focus:border-blue-500 outline-none" 
                     value={scriptUrl} 
                     onChange={(e) => saveScriptUrl(e.target.value)} 
@@ -387,6 +383,108 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Detail Modal Overlay */}
+      {selectedSession && (
+        <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedSession(null)} />
+          <div className="relative bg-white w-full max-h-[92vh] rounded-t-[40px] shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+            {/* Modal Header */}
+            <div className="bg-slate-50 px-6 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-[20px] font-black text-blue-900 uppercase tracking-tight leading-none mb-1">Chi tiết giám sát</h2>
+                <p className="text-slate-400 text-[12px] font-bold uppercase tracking-widest">{selectedSession.department} • {formatToVN(selectedSession.date)}</p>
+              </div>
+              <button onClick={() => setSelectedSession(null)} className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 active:scale-90 shadow-sm">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 pb-32">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                  <UserCircle className="text-blue-500" size={20} />
+                  <div>
+                    <p className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Giám sát bởi</p>
+                    <p className="font-black text-slate-700 text-[14px] truncate">{selectedSession.observer}</p>
+                  </div>
+                </div>
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
+                  <Info className="text-blue-500" size={20} />
+                  <div>
+                    <p className="text-[10px] font-black text-slate-300 uppercase leading-none mb-1">Kết quả đạt</p>
+                    <p className="font-black text-slate-700 text-[14px]">
+                      {selectedSession.observations.filter(o => o.procedure === "Đúng").length}/{selectedSession.observations.length} Lượt
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Dánh sách lượt quan sát</label>
+                {selectedSession.observations.map((obs, idx) => (
+                  <div key={obs.id} className="bg-white rounded-[28px] p-5 border border-slate-100 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-[11px] font-black">{idx + 1}</span>
+                        <h4 className="font-black text-slate-800 uppercase text-[14px] tracking-wider truncate max-w-[180px]">{obs.staffName}</h4>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
+                        obs.procedure === "Đúng" ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                      }`}>
+                        {obs.procedure === "Đúng" ? 'ĐÚNG' : (obs.procedure === "Sai" ? 'SAI' : 'N/A')}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                       <div className="flex gap-3">
+                        <Briefcase className="text-slate-300 shrink-0" size={16} />
+                        <div>
+                          <p className="text-[10px] font-black text-slate-300 uppercase mb-0.5">Đối tượng</p>
+                          <p className="text-[14px] font-bold text-slate-600">{obs.profession}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Calendar className="text-slate-300 shrink-0" size={16} />
+                        <div>
+                          <p className="text-[10px] font-black text-slate-300 uppercase mb-0.5">Chỉ định</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {obs.indications.map((ind, i) => (
+                              <span key={i} className="bg-indigo-50 text-indigo-500 border border-indigo-100 px-2.5 py-1 rounded-lg text-[12px] font-bold leading-none">
+                                {ind}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Zap className="text-slate-300 shrink-0" size={16} />
+                        <div>
+                          <p className="text-[10px] font-black text-slate-300 uppercase mb-0.5">Hành động</p>
+                          <p className={`text-[14px] font-black ${
+                            NON_HYGIENE_ACTIONS.includes(obs.action) ? 'text-rose-600' : 'text-blue-600'
+                          }`}>
+                            {obs.action}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="p-6 bg-white border-t border-slate-100 safe-bottom">
+              <button onClick={() => setSelectedSession(null)} className="w-full py-4 bg-blue-900 text-white rounded-[20px] font-black shadow-xl active:scale-95 transition-all">
+                ĐÓNG CHI TIẾT
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-sky-100 flex justify-around items-center px-4 py-2 safe-bottom z-50 shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
         {[
