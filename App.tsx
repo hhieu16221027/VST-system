@@ -1,18 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { MonitoringSession, Observation, Department } from './types';
-import { DEPARTMENTS, NON_HYGIENE_ACTIONS } from './constants';
+import { MonitoringSession, Observation, Department, Profession } from './types';
+import { DEPARTMENTS, PROFESSIONS, NON_HYGIENE_ACTIONS } from './constants';
 import ObservationRow from './components/ObservationRow';
 import { 
-  Plus, History, LayoutDashboard, FileText, CheckCheck, Loader2, 
-  Activity, Settings, CloudUpload, Check, Users, AlertCircle,
-  ChevronRight, X, UserCircle, Briefcase, Zap, Info, Calendar
+  Plus, History, LayoutDashboard, FileText, Loader2, 
+  Settings, CloudUpload, X, UserCircle, Briefcase, Zap, Calendar, ChevronRight,
+  TrendingUp, BarChart3
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 const STORAGE_KEY = 'hand_hygiene_data_v2';
 const SCRIPT_URL_KEY = 'hand_hygiene_script_url_v2';
+const LOGO_URL_KEY = 'hand_hygiene_logo_url_v2';
 const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXmB7F2gHRlTMDJThk2THi5Sd7qvstN_eIqncvrPZqL97ZG_8vmdYx7rJggA4yTmeP/exec";
+const DEFAULT_LOGO_FALLBACK = "https://cdn-icons-png.flaticon.com/512/3063/3063204.png";
 
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
@@ -23,12 +25,12 @@ const formatToVN = (dateStr: string) => {
 };
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'form' | 'history' | 'stats' | 'settings'>('form');
+  const [activeTab, setActiveTab] = useState<'form' | 'history' | 'stats'>('form');
   const [history, setHistory] = useState<MonitoringSession[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [scriptUrl, setScriptUrl] = useState('');
-  const [isUrlSaved, setIsUrlSaved] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [selectedSession, setSelectedSession] = useState<MonitoringSession | null>(null);
 
@@ -60,14 +62,14 @@ const App: React.FC = () => {
       setScriptUrl(DEFAULT_SCRIPT_URL);
       localStorage.setItem(SCRIPT_URL_KEY, DEFAULT_SCRIPT_URL);
     }
-  }, []);
 
-  const saveScriptUrl = (url: string) => {
-    setScriptUrl(url);
-    localStorage.setItem(SCRIPT_URL_KEY, url);
-    setIsUrlSaved(true);
-    setTimeout(() => setIsUrlSaved(false), 2000);
-  };
+    const storedLogo = localStorage.getItem(LOGO_URL_KEY);
+    if (storedLogo) {
+      setLogoUrl(storedLogo);
+    } else {
+      setLogoUrl('logo.png');
+    }
+  }, []);
 
   const handleAddObservation = () => {
     setObservations([...observations, {
@@ -166,60 +168,80 @@ const App: React.FC = () => {
       }, 1500);
 
     } catch (error) {
-      saveScriptUrl(scriptUrl); // Trigger re-save to local storage if fail
+      console.error("Lỗi gửi dữ liệu:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const getStats = () => {
-    const allObs = history.flatMap(h => h.observations);
-    if (allObs.length === 0) return null;
-    const total = allObs.length;
-    const compliant = allObs.filter(o => o.action !== "Không VST" && o.action !== "Mang găng và không VST");
-    
-    const profStats = ["Bác sĩ", "DD/HS/KTV", "Hộ lý", "Khác"].map(p => {
-      const pObs = allObs.filter(o => o.profession === p);
-      const pCompliant = pObs.filter(o => o.action !== "Không VST" && o.action !== "Mang găng và không VST");
-      return {
-        name: p,
-        totalObs: pObs.length,
-        compliantObs: pCompliant.length,
-        rate: pObs.length > 0 ? (pCompliant.length / pObs.length * 100).toFixed(1) : "0"
-      };
-    });
+  const getStatsByDepartment = () => {
+    if (history.length === 0) return [];
 
-    return { total, compliance: (compliant.length / total * 100).toFixed(1), profStats };
+    const stats = DEPARTMENTS.map(dept => {
+      const deptSessions = history.filter(h => h.department === dept);
+      const allObs = deptSessions.flatMap(h => h.observations);
+      
+      if (allObs.length === 0) return null;
+
+      const compliantObs = allObs.filter(o => !NON_HYGIENE_ACTIONS.includes(o.action));
+      const complianceRate = (compliantObs.length / allObs.length * 100).toFixed(1);
+
+      const profStats = PROFESSIONS.map(p => {
+        const pObs = allObs.filter(o => o.profession === p);
+        const pCompliant = pObs.filter(o => !NON_HYGIENE_ACTIONS.includes(o.action));
+        return {
+          name: p,
+          totalObs: pObs.length,
+          compliantObs: pCompliant.length,
+          rate: pObs.length > 0 ? (pCompliant.length / pObs.length * 100).toFixed(1) : "0"
+        };
+      });
+
+      return {
+        deptName: dept,
+        total: allObs.length,
+        complianceRate,
+        profStats
+      };
+    }).filter(Boolean);
+
+    return stats;
   };
 
-  const stats = getStats();
+  const deptStats = getStatsByDepartment();
 
   return (
     <div className="min-h-screen bg-[#F0F9FF] font-sans text-slate-900 overflow-x-hidden pb-40">
-      <header className="bg-white/95 backdrop-blur-md border-b border-sky-100 sticky top-0 z-40 px-6 py-4 safe-top shadow-sm">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-600 p-2 rounded-2xl text-white shadow-blue-200 shadow-xl">
-              <CheckCheck size={24} />
-            </div>
-            <div>
-              <h1 className="text-[20px] font-black tracking-tight leading-none uppercase text-blue-900">VST SYSTEM</h1>
-            </div>
+      <header className="bg-white border-b border-sky-100 sticky top-0 z-40 px-6 py-6 safe-top shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-center gap-5 -translate-x-[18px] translate-y-[9px]">
+          <div className="shrink-0">
+            <img 
+              src={logoUrl || "logo.png"} 
+              alt="Logo Bệnh viện" 
+              className="h-16 w-16 object-contain drop-shadow-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = DEFAULT_LOGO_FALLBACK;
+              }}
+            />
           </div>
-          <button onClick={() => setActiveTab('settings')} className="p-2.5 text-slate-400 hover:text-blue-600 transition-colors bg-sky-50 rounded-2xl">
-            <Settings size={24} />
-          </button>
+          <div className="flex flex-col items-center">
+            <h1 className="text-[22px] font-black tracking-tighter leading-none uppercase text-blue-600">
+              BỆNH VIỆN ĐA KHOA
+            </h1>
+            <h2 className="text-[22px] font-black tracking-tighter leading-tight uppercase text-blue-600">
+              TÂN PHÚ
+            </h2>
+          </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 pt-8">
         {activeTab === 'form' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
-            <div className="text-center mb-8 px-2">
-              <h2 className="text-[20px] md:text-[24px] font-black text-blue-700 leading-tight uppercase tracking-tight">
-                GIÁM SÁT VST THƯỜNG QUY <br /> BỆNH VIỆN ĐA KHOA TÂN PHÚ
+            <div className="px-2 mb-6 text-center">
+              <h2 className="text-[18px] font-black text-blue-800/40 uppercase tracking-[0.2em] leading-relaxed">
+                Giám sát vệ sinh tay <br /> thường quy
               </h2>
-              <div className="h-1 w-20 bg-blue-600 mx-auto mt-4 rounded-full shadow-sm shadow-blue-200"></div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -246,9 +268,14 @@ const App: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[16px] font-black text-slate-400 uppercase ml-2">KHOA ĐƯỢC GIÁM SÁT</label>
-                    <select className="w-full px-5 py-4 bg-sky-50/50 border-none rounded-[18px] text-[16px] font-bold outline-none appearance-none shadow-inner" value={department} onChange={(e) => setDepartment(e.target.value as Department)}>
-                      {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-                    </select>
+                    <div className="relative">
+                      <select className="w-full px-5 py-4 bg-sky-50/50 border-none rounded-[18px] text-[16px] font-bold outline-none appearance-none shadow-inner" value={department} onChange={(e) => setDepartment(e.target.value as Department)}>
+                        {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                      </select>
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-sky-300">
+                        <ChevronRight className="rotate-90" size={20} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -275,8 +302,8 @@ const App: React.FC = () => {
 
         {activeTab === 'history' && (
           <div className="space-y-8 animate-in slide-in-from-right-4">
-             <div className="flex justify-between items-center px-2">
-                <h2 className="text-[22px] font-black text-blue-900">Nhật ký</h2>
+             <div className="flex justify-between items-center px-2 mb-6">
+                <h2 className="text-[22px] font-black text-blue-900 uppercase">Nhật ký</h2>
                 <button onClick={() => { if(confirm("Xóa toàn bộ lịch sử?")) { localStorage.removeItem(STORAGE_KEY); setHistory([]); } }} className="text-[14px] font-bold text-red-500 bg-white px-4 py-2 rounded-full uppercase border border-red-100 shadow-sm">Xóa tất cả</button>
              </div>
              {history.length === 0 ? (
@@ -308,91 +335,98 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'stats' && (
-          <div className="space-y-7 animate-in zoom-in-95 pb-10">
-             {!stats ? (
-               <div className="text-center py-20 text-sky-400 font-bold">Cần có dữ liệu để xem báo cáo</div>
+          <div className="space-y-8 animate-in zoom-in-95 pb-10">
+             <div className="px-2 mb-6">
+                <h2 className="text-[22px] font-black text-blue-900 uppercase tracking-tight">Báo cáo giám sát</h2>
+                <p className="text-[14px] font-bold text-slate-400 mt-1 uppercase">Tổng hợp theo từng khoa được giám sát</p>
+             </div>
+             
+             {deptStats.length === 0 ? (
+               <div className="text-center py-24 bg-white rounded-[32px] border border-sky-100 shadow-sm space-y-4">
+                 <div className="w-16 h-16 bg-sky-50 rounded-full flex items-center justify-center mx-auto text-sky-300">
+                    <BarChart3 size={32} />
+                 </div>
+                 <p className="text-sky-400 font-black uppercase text-[14px] tracking-widest">Chưa có dữ liệu thống kê</p>
+               </div>
              ) : (
-               <>
-                 <div className="bg-white p-6 rounded-[28px] shadow-sm border-b-8 border-blue-500 text-center">
-                    <div className="text-[16px] font-black text-slate-400 uppercase mb-2">Tỉ lệ tuân thủ chung</div>
-                    <div className="text-[44px] font-black text-blue-900">{stats.compliance}%</div>
-                 </div>
-
-                 <div className="bg-white p-6 rounded-[28px] shadow-sm border border-sky-100">
-                    <h3 className="text-[18px] font-black text-slate-400 uppercase mb-6 text-center">Cơ hội theo đối tượng</h3>
-                    <div className="h-[240px]">
-                       <ResponsiveContainer width="100%" height="100%">
-                         <BarChart data={stats.profStats} layout="vertical">
-                            <XAxis type="number" hide />
-                            <YAxis dataKey="name" type="category" width={90} fontSize={14} fontWeight="black" />
-                            <Tooltip contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 12px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="totalObs" name="Tổng cơ hội" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={20}>
-                               {stats.profStats.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#60a5fa'} />
-                               ))}
-                            </Bar>
-                         </BarChart>
-                       </ResponsiveContainer>
-                    </div>
-                 </div>
-
-                 <div className="grid grid-cols-1 gap-4">
-                    {stats.profStats.map(prof => (
-                      <div key={prof.name} className="bg-white p-5 rounded-[24px] shadow-sm border border-sky-100 flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[18px] font-black text-blue-900 uppercase">{prof.name}</span>
-                          <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[16px] font-black">{prof.rate}%</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-sky-50 p-3 rounded-xl">
-                            <div className="text-[12px] font-bold text-blue-400 uppercase">Cơ hội</div>
-                            <div className="text-[20px] font-black text-blue-800">{prof.totalObs}</div>
-                          </div>
-                          <div className="bg-green-50 p-3 rounded-xl">
-                            <div className="text-[12px] font-bold text-green-400 uppercase">Có tuân thủ</div>
-                            <div className="text-[20px] font-black text-green-600">{prof.compliantObs}</div>
-                          </div>
+               <div className="space-y-10">
+                 {deptStats.map((dept: any) => (
+                   <div key={dept.deptName} className="bg-white rounded-[32px] shadow-sm border border-sky-100 overflow-hidden">
+                      <div className="bg-blue-900 p-6 flex items-center justify-between">
+                        <h3 className="text-[18px] font-black text-white uppercase tracking-tight leading-tight max-w-[70%]">
+                          {dept.deptName}
+                        </h3>
+                        <div className="flex flex-col items-end">
+                           <div className="bg-white/20 px-3 py-1 rounded-full text-[12px] font-black text-white/90 uppercase tracking-tighter">
+                             {dept.total} Cơ hội
+                           </div>
                         </div>
                       </div>
-                    ))}
-                 </div>
-               </>
-             )}
-          </div>
-        )}
 
-        {activeTab === 'settings' && (
-          <div className="space-y-8 animate-in fade-in">
-             <div className="bg-white rounded-[28px] p-6 shadow-2xl border border-sky-100 space-y-6">
-                <h2 className="text-[22px] font-black text-blue-900 flex items-center gap-4">
-                  <Settings className="text-blue-600" size={24} /> Cấu hình
-                </h2>
-                <div className="space-y-3">
-                  <label className="text-[16px] font-black text-slate-400 uppercase">Google Script URL</label>
-                  <input 
-                    type="url" 
-                    placeholder="Dán link Apps Script vào đây"
-                    className="w-full px-5 py-4 bg-sky-50 rounded-xl text-[14px] font-mono border-2 border-transparent focus:border-blue-500 outline-none" 
-                    value={scriptUrl} 
-                    onChange={(e) => saveScriptUrl(e.target.value)} 
-                  />
-                  {isUrlSaved && <p className="text-green-500 text-[12px] font-black">✓ ĐÃ LƯU TỰ ĐỘNG</p>}
-                </div>
-                <button onClick={() => setActiveTab('form')} className="w-full py-4 bg-blue-900 text-white font-black rounded-xl text-[16px] uppercase shadow-xl">Quay lại</button>
-             </div>
+                      <div className="p-6 space-y-8">
+                        <div className="flex flex-col gap-2 py-2">
+                           <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-blue-600">
+                                <TrendingUp size={18} />
+                                <span className="text-[15px] font-black uppercase tracking-wider">TỶ LỆ TUÂN THỦ</span>
+                              </div>
+                              <span className="text-[28px] font-black text-blue-900">{dept.complianceRate}%</span>
+                           </div>
+                           <p className="text-[14px] text-slate-500 font-medium leading-snug border-l-4 border-blue-500 pl-4 bg-blue-50/30 py-2 rounded-r-xl">
+                             Dựa trên <strong>{dept.total}</strong> lượt quan sát thực tế tại khoa.
+                           </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">Cơ hội theo đối tượng</h4>
+                          <div className="h-[200px] bg-slate-50/50 rounded-3xl p-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={dept.profStats} layout="vertical" margin={{ left: -10, right: 20 }}>
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="name" type="category" width={80} fontSize={12} fontWeight="900" axisLine={false} tickLine={false} />
+                                <Tooltip 
+                                  cursor={{fill: 'rgba(59, 130, 246, 0.05)'}}
+                                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', padding: '12px' }}
+                                />
+                                <Bar dataKey="totalObs" name="Tổng cơ hội" radius={[0, 8, 8, 0]} barSize={16}>
+                                  {dept.profStats.map((entry: any, index: number) => (
+                                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3b82f6' : '#60a5fa'} />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                           {dept.profStats.map((prof: any) => (
+                             <div key={prof.name} className="p-4 rounded-[24px] border border-slate-50 bg-slate-50/30 flex flex-col gap-1">
+                               <div className="flex justify-between items-start">
+                                 <span className="text-[12px] font-black text-slate-800 uppercase truncate max-w-[60px]">{prof.name}</span>
+                                 <span className="text-[14px] font-black text-blue-600">{prof.rate}%</span>
+                               </div>
+                               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                 {prof.compliantObs}/{prof.totalObs} Tuân thủ
+                               </div>
+                             </div>
+                           ))}
+                        </div>
+                   </div>
+                 </div>
+                 ))}
+               </div>
+             )}
           </div>
         )}
       </main>
 
-      {/* Detail Modal Overlay */}
       {selectedSession && (
         <div className="fixed inset-0 z-[100] flex flex-col justify-end">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelectedSession(null)} />
           <div className="relative bg-white w-full max-h-[92vh] rounded-t-[40px] shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
-            {/* Modal Header */}
             <div className="bg-slate-50 px-6 py-6 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-[20px] font-black text-blue-900 uppercase tracking-tight leading-none mb-1">Chi tiết giám sát</h2>
+                <h2 className="text-[18px] font-black text-blue-900 uppercase tracking-tight leading-none mb-1">Chi tiết giám sát</h2>
                 <p className="text-slate-400 text-[12px] font-bold uppercase tracking-widest">{selectedSession.department} • {formatToVN(selectedSession.date)}</p>
               </div>
               <button onClick={() => setSelectedSession(null)} className="w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-400 active:scale-90 shadow-sm">
@@ -400,7 +434,6 @@ const App: React.FC = () => {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 pb-32">
               <div className="grid grid-cols-1">
                 <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
@@ -413,7 +446,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Dánh sách lượt quan sát ({selectedSession.observations.length})</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">DANH SÁCH CƠ HỘI ĐÃ QUAN SÁT ({selectedSession.observations.length})</label>
                 {selectedSession.observations.map((obs, idx) => (
                   <div key={obs.id} className="bg-white rounded-[28px] p-5 border border-slate-100 shadow-sm space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-50 pb-3">
@@ -498,7 +531,7 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-blue-950/40 backdrop-blur-md animate-in fade-in">
           <div className="bg-white rounded-[40px] p-8 text-center shadow-2xl animate-in zoom-in-95 max-w-sm w-[85%] border border-white">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-              <CheckCheck size={32} />
+              <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" className="w-8 h-8" />
             </div>
             <h3 className="text-[24px] font-black text-slate-800 mb-2">Thành công</h3>
             <p className="text-slate-400 font-bold text-[16px] uppercase">Dữ liệu đã được ghi nhận.</p>
