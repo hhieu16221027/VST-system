@@ -67,7 +67,7 @@ const App: React.FC = () => {
     if (storedLogo) {
       setLogoUrl(storedLogo);
     } else {
-      setLogoUrl('logo.png');
+      setLogoUrl('https://raw.githubusercontent.com/hhieu16221027/VST-system/refs/heads/main/logo.png');
     }
   }, []);
 
