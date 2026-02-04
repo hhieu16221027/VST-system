@@ -1,4 +1,5 @@
-# Hệ thống Giám sát Vệ sinh Tay (VST SYSTEM)
+
+# Hệ thống Giám sát Vệ sinh Tay (GIÁM SÁT VST)
 
 Ứng dụng chuyên nghiệp dành cho nhân viên y tế để ghi nhận và báo cáo kết quả giám sát tuân thủ vệ sinh tay tại Bệnh viện Đa khoa Tân Phú.
 
@@ -12,7 +13,7 @@ Sau khi truy cập vào đường link ứng dụng trên điện thoại, hãy 
 1. Nhấn vào biểu tượng **Chia sẻ** (hình ô vuông có mũi tên lên) ở thanh dưới cùng.
 2. Kéo xuống dưới và chọn **Thêm vào MH chính** (Add to Home Screen).
 3. Nhấn **Thêm** (Add) ở góc trên bên phải.
-4. Biểu tượng **VST SYSTEM** sẽ xuất hiện trên màn hình chính của bạn.
+4. Biểu tượng **GIÁM SÁT VST** sẽ xuất hiện trên màn hình chính của bạn.
 
 ### 2. Trên Android (Dùng trình duyệt Chrome):
 1. Nhấn vào biểu tượng **3 dấu chấm** ở góc trên bên phải.
@@ -29,7 +30,7 @@ Sau khi truy cập vào đường link ứng dụng trên điện thoại, hãy 
 4. Chọn **Deploy** -> **New Deployment**.
 5. Chọn loại là **Web App**, đặt quyền truy cập là **Anyone**.
 6. Copy **Web App URL** nhận được.
-7. Mở ứng dụng VST System, vào phần **Cấu hình (biểu tượng bánh răng)** và dán URL vào ô **Google Script URL**.
+7. Mở ứng dụng, dán URL vào cấu hình trong mã nguồn (file App.tsx).
 
 ---
-*Phát triển bởi Đội ngũ Kiểm soát Nhiễm khuẩn - BVĐK Tân Phú.*
+*Phát triển bởi Khoa Kiểm soát nhiễm khuẩn - Bệnh viện Đa khoa Tân Phú.*
