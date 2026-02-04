@@ -5,14 +5,13 @@ import { DEPARTMENTS, PROFESSIONS, NON_HYGIENE_ACTIONS } from './constants';
 import ObservationRow from './components/ObservationRow';
 import { 
   Plus, History, LayoutDashboard, FileText, Loader2, 
-  Settings, CloudUpload, X, UserCircle, Briefcase, Zap, Calendar, ChevronRight,
+  CloudUpload, X, UserCircle, Briefcase, Zap, Calendar, ChevronRight,
   TrendingUp, BarChart3
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
 const STORAGE_KEY = 'hand_hygiene_data_v2';
 const SCRIPT_URL_KEY = 'hand_hygiene_script_url_v2';
-const LOGO_URL_KEY = 'hand_hygiene_logo_url_v2';
 const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXmB7F2gHRlTMDJThk2THi5Sd7qvstN_eIqncvrPZqL97ZG_8vmdYx7rJggA4yTmeP/exec";
 const DEFAULT_LOGO_FALLBACK = "https://cdn-icons-png.flaticon.com/512/3063/3063204.png";
 
@@ -30,7 +29,6 @@ const App: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [scriptUrl, setScriptUrl] = useState('');
-  const [logoUrl, setLogoUrl] = useState('');
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [selectedSession, setSelectedSession] = useState<MonitoringSession | null>(null);
 
@@ -61,13 +59,6 @@ const App: React.FC = () => {
     } else {
       setScriptUrl(DEFAULT_SCRIPT_URL);
       localStorage.setItem(SCRIPT_URL_KEY, DEFAULT_SCRIPT_URL);
-    }
-
-    const storedLogo = localStorage.getItem(LOGO_URL_KEY);
-    if (storedLogo) {
-      setLogoUrl(storedLogo);
-    } else {
-      setLogoUrl('logo.png');
     }
   }, []);
 
@@ -216,10 +207,11 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-5 -translate-x-[18px] translate-y-[9px]">
           <div className="shrink-0">
             <img 
-              src={logoUrl || "logo.png"} 
+              src="/logo.png" 
               alt="Logo Bệnh viện" 
               className="h-16 w-16 object-contain drop-shadow-sm"
               onError={(e) => {
+                // Nếu file logo.png không tìm thấy, tự động hiện icon y tế mặc định
                 (e.target as HTMLImageElement).src = DEFAULT_LOGO_FALLBACK;
               }}
             />
