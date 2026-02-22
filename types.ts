@@ -1,4 +1,10 @@
 
+export interface User {
+  username: string;
+  fullName: string;
+  role: 'admin' | 'observer';
+}
+
 export type Department = 
   | "Hồi sức cấp cứu" 
   | "Nội - Nhiễm" 

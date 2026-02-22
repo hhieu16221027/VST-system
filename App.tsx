@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { MonitoringSession, Observation, Department, Profession } from './types';
-import { DEPARTMENTS, PROFESSIONS, NON_HYGIENE_ACTIONS } from './constants';
+import { MonitoringSession, Observation, Department, Profession, User as UserType } from './types';
+import { DEPARTMENTS, PROFESSIONS, NON_HYGIENE_ACTIONS, AUTH_KEY } from './constants';
 import ObservationRow from './components/ObservationRow';
+import Login from './components/Login';
 import { 
   Plus, History, LayoutDashboard, FileText, Loader2, 
   CloudUpload, X, UserCircle, Briefcase, Zap, Calendar, ChevronRight,
-  TrendingUp, BarChart3
+  TrendingUp, BarChart3, LogOut
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
@@ -24,6 +25,7 @@ const formatToVN = (dateStr: string) => {
 };
 
 const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
   const [activeTab, setActiveTab] = useState<'form' | 'history' | 'stats'>('form');
   const [history, setHistory] = useState<MonitoringSession[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +50,17 @@ const App: React.FC = () => {
   ]);
 
   useEffect(() => {
+    const storedAuth = localStorage.getItem(AUTH_KEY);
+    if (storedAuth) {
+      try {
+        const user = JSON.parse(storedAuth);
+        setCurrentUser(user);
+        setObserver(user.fullName);
+      } catch (e) {
+        console.error("Lỗi đọc thông tin đăng nhập:", e);
+      }
+    }
+
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try { setHistory(JSON.parse(stored)); } catch (e) { console.error("Lỗi đọc dữ liệu:", e); }
@@ -201,28 +214,57 @@ const App: React.FC = () => {
 
   const deptStats = getStatsByDepartment();
 
+  const handleLogout = () => {
+    if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+      localStorage.removeItem(AUTH_KEY);
+      setCurrentUser(null);
+    }
+  };
+
+  if (!currentUser) {
+    return <Login onLogin={(user) => {
+      setCurrentUser(user);
+      setObserver(user.fullName);
+    }} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F0F9FF] font-sans text-slate-900 overflow-x-hidden pb-40">
       <header className="bg-white border-b border-sky-100 sticky top-0 z-40 px-6 py-6 safe-top shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-5 -translate-x-[18px] translate-y-[9px]">
-          <div className="shrink-0">
-            <img 
-              src="/logo.png" 
-              alt="Logo Bệnh viện" 
-              className="h-16 w-16 object-contain drop-shadow-sm"
-              onError={(e) => {
-                // Nếu file logo.png không tìm thấy, tự động hiện icon y tế mặc định
-                (e.target as HTMLImageElement).src = DEFAULT_LOGO_FALLBACK;
-              }}
-            />
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="shrink-0">
+              <img 
+                src="/logo.png" 
+                alt="Logo Bệnh viện" 
+                className="h-14 w-14 object-contain drop-shadow-sm"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_LOGO_FALLBACK;
+                }}
+              />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-[18px] font-black tracking-tighter leading-none uppercase text-blue-600">
+                BỆNH VIỆN ĐA KHOA
+              </h1>
+              <h2 className="text-[18px] font-black tracking-tighter leading-tight uppercase text-blue-600">
+                TÂN PHÚ
+              </h2>
+            </div>
           </div>
-          <div className="flex flex-col items-center">
-            <h1 className="text-[22px] font-black tracking-tighter leading-none uppercase text-blue-600">
-              BỆNH VIỆN ĐA KHOA
-            </h1>
-            <h2 className="text-[22px] font-black tracking-tighter leading-tight uppercase text-blue-600">
-              TÂN PHÚ
-            </h2>
+          
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end mr-2">
+              <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Chào mừng,</span>
+              <span className="text-[14px] font-black text-blue-900 truncate max-w-[120px]">{currentUser.fullName}</span>
+            </div>
+            <button 
+              onClick={handleLogout}
+              className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 active:scale-90 transition-all hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100"
+              title="Đăng xuất"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </header>
