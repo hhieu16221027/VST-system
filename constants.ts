@@ -34,10 +34,10 @@ export const NON_HYGIENE_ACTIONS: Action[] = ["Không VST", "Mang găng và khô
 export const AUTH_KEY = 'hand_hygiene_auth_v2';
 
 export const ALLOWED_USERS = [
-  { username: 'hhieu.ksnk', password: 'hohieuksnk', fullName: 'Hồ Hiếu', role: 'admin' },
-  { username: 'ntbthuy.ksnk', password: 'nguyenthibichthuyksnk', fullName: 'Nguyễn Thị Bích Thuỷ', role: 'observer' },
-  { username: 'cpduyen', password: 'camphuongduyenksnk', fullName: 'Cam Phương Duyên', role: 'observer' }
-  { username: 'ttbphuong.ksnk', password: 'tranthibichphuongksnk', fullName: 'Trần Thị Bích Phương', role: 'observer' }
-  { username: 'pthien.ksnk', password: 'phamthihienksnk', fullName: 'Phạm Thị Hiền', role: 'observer' }
-  { username: 'vttam.ksnk', password: 'vothitamksnk', fullName: 'Võ Thị Tâm', role: 'observer' }
+  { username: 'hhieu.ksnk', password: 'hohieu.ksnk', fullName: 'Hồ Hiếu', role: 'admin' },
+  { username: 'ntbthuy.ksnk', password: 'nguyenthibichthuy.ksnk', fullName: 'Nguyễn Thị Bích Thuỷ', role: 'observer' },
+  { username: 'cpduyen.ksnk', password: 'camphuongduyen.ksnk', fullName: 'Cam Phương Duyên', role: 'observer' }
+  { username: 'vttam.ksnk', password: 'vothitam.ksnk', fullName: 'Võ Thị Tâm', role: 'observer' }
+  { username: 'ttbphuong', password: 'tranthibichphuong.ksnk', fullName: 'Trần Thị Bích Phương', role: 'observer' }
+  { username: 'pthien.ksnk', password: 'phamthihien.ksnk', fullName: 'Phạm Thị Hiền', role: 'observer' }
 ];

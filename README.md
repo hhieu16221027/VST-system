@@ -33,4 +33,4 @@ Sau khi truy cập vào đường link ứng dụng trên điện thoại, hãy 
 7. Mở ứng dụng, dán URL vào cấu hình trong mã nguồn (file App.tsx).
 
 ---
-*Phát triển bởi Khoa Kiểm soát nhiễm khuẩn - Bệnh viện Đa khoa Tân Phú.*
+*Phát triển bởi Đội ngũ Kiểm soát Nhiễm khuẩn - BVĐK Tân Phú.*
