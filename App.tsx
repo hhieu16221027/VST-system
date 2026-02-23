@@ -215,10 +215,8 @@ const App: React.FC = () => {
   const deptStats = getStatsByDepartment();
 
   const handleLogout = () => {
-    if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-      localStorage.removeItem(AUTH_KEY);
-      setCurrentUser(null);
-    }
+    localStorage.removeItem(AUTH_KEY);
+    setCurrentUser(null);
   };
 
   if (!currentUser) {
@@ -260,10 +258,11 @@ const App: React.FC = () => {
             </div>
             <button 
               onClick={handleLogout}
-              className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 active:scale-90 transition-all hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100"
+              className="flex items-center gap-2 bg-rose-50 border border-rose-100 px-4 py-2 rounded-2xl text-rose-600 active:scale-95 transition-all hover:bg-rose-100"
               title="Đăng xuất"
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
+              <span className="text-[14px] font-black uppercase">Đăng xuất</span>
             </button>
           </div>
         </div>
